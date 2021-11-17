@@ -12,16 +12,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Lab 7: Resampling Methods
-
-You are required to submit two files: a knitted PDF/Word/HTML file that includes your solutions, results (R output), and your comments where needed, and a separate RMD file.
-
-Submit your work via Blackboard.
-
-We used logistic regression to predict the probability of
-`default` using `income` and `balance` on the `Default` data set, which is part of the `ISLR2` package. You will now estimate the test error of this logistic regression model using the validation set approach. Do not forget to set a random seed before
-beginning your analysis.
-
 ```{r}
 library(ISLR2)
 
