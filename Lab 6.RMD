@@ -1,0 +1,119 @@
+---
+title: "Lab 6. Logistic regression: Stock market data"
+author: "I. Maslova"
+date: "10/17/2021"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+We will begin by examining some numerical and graphical summaries of the `Smarket` data, which is part of the `ISLR2` library. This data set
+consists of percentage returns for the S&P 500 stock index over 1,250
+days, from the beginning of 2001 until the end of 2005. For each date,
+we have recorded the percentage returns for each of the five previous
+trading days, `Lag1` through `Lag5`. We have also recorded `Volume` (the number of shares traded on the previous day, in billions), `Today` (the percentage return on the date in question) and `Direction` (whether the market was Up or Down on this date). Our goal is to predict `Direction` (a qualitative response) using the other features.
+
+
+First, load the ISLR package.
+
+```{r}
+library(ISLR2)
+```
+
+Next, attach the data frame for `Smarket` to `R`’s working directory (memory). This will allow us access variables in the data set directly without having to specify the name of the data frame, i.e. instead of typing `Smarket$Year` we can directly type `Year` which is a variable in the `Smarket` data set.
+
+```{r}
+attach(Smarket)
+```
+
+
+Then split the `Smarket` data set into training and testing data. We can use subsetting technique (vector subsetting). The training data set will contain all observations before 2005 and the testing data set will have all observations in 2005. First, create two Boolean vectors. A Boolean vector has either TRUE or FALSE as its value. For the train vector, a TRUE will be assigned to the cell that has the same index as the observation in `Smarket` with `Year < 2005`. The `test` vector is exactly the opposite of `train. The ‘!’ negates what is in `train`.
+
+```{r}
+
+train=Smarket[Year < 2005, ]
+
+test=Smarket[!Year<2005, ]
+```
+
+Select the observations in `Smarket` that will go into the training and testing data set. Get rid of the 8th variable `Today` because it is similar to `Direction`. 
+
+```{r}
+training_data= train[, -8]
+
+testing_data= test[ ,  -8]
+
+
+```
+
+
+For model assessment purposes, we are going to create a vector that has only `y` values from the testing data set. The model assessment will happen later on, after we create our model using the training data
+
+```{r}
+testing_y= test$Direction
+
+```
+
+Use the training set to fit the logistic regression.
+Use the `glm()` function, which is a general linear model. The first argument is our regression formula, which specifies that we are predicting `Direction` using all predictor variables in our data set (the . means to use all variables). If you want to use specific variables, let’s say `Lag1` and `Lag2`, then the formula would be `Direction ~ Lag1 + Lag2`. Use the training data set to train our model, and specify the family of the model to be `binomial`, because we are running logistic regression. If we don’t specify the family of the linear model, then the model will be regular linear regression
+
+```{r}
+
+model <- glm(Direction~., data= training_data, family=binomial)
+
+model
+
+summary(model)
+
+```
+
+Next, assess our model. To do so, predict the `y` values for the testing
+data set, and then compare the predicted `y`’s with the real one that we saved under the name `testing_y`. Use `predict()` function to compute the predicted probabilities of
+being in one class or another (Down or Up in our case).
+
+```{r}
+
+model.pred <- predict.glm(model, testing_data, type = 
+              "response")
+
+head(model.pred)
+
+```
+
+Since `predict()` computes probabilities, then we have to convert them to the actual classes (Up or Down).
+To convert those probabilities, start by creating an empty vector to hold those classes. This array must have the same length of the `testing_y` (252 in this example), and we will initialize it to have all of its cells marked as `Down`, and then we will update this vector to have `Up` in cells where the corresponding predicted probabilities
+is greater than 0.5 (this threshold could change based on the application).
+
+```{r}
+
+predicted.values=rep("Down", length(testing_y))
+predicted.values[model.pred>0.5]="Up"
+
+```
+
+Use `table()` function to create the contingency table of observed values vs. predicted.
+
+```{r}
+
+table( testing_y, predicted.values)
+
+```
+
+
+Finally, compute the missclassification error rate.
+
+```{r}
+
+mis_rate = (2+140)/(252)
+
+mean(predicted.values!=testing_y)*100
+
+```
+
